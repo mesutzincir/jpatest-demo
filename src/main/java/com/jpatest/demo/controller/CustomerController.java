@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,12 +29,13 @@ public class CustomerController {
         List<CustomerDTO> listDto = listCustomer.stream().map(c -> mapper.map(c, CustomerDTO.class)).collect(Collectors.toList());
         return listDto;
     }
+
     @GetMapping("getnames")
     public Map<Long, String> getnames() {
         ModelMapper mapper;
         mapper = new ModelMapper();
         List<Customer> listCustomer = customerRepository.findAll();
-        Map<Long, String> listDto =  listCustomer.stream().collect(Collectors.toMap(c-> c.getId(), c->c.getName()));
+        Map<Long, String> listDto = listCustomer.stream().collect(Collectors.toMap(c -> c.getId(), c -> c.getName()));
         return listDto;
     }
 
@@ -50,5 +52,20 @@ public class CustomerController {
         Customer cust = mapper.map(dto, Customer.class);
         cust = customerRepository.save(cust);
         return mapper.map(cust, CustomerDTO.class);
+    }
+
+    @PostMapping("update")
+    public CustomerDTO update(@RequestBody CustomerDTO dto) {
+
+        Optional<Customer> optionalCustomer = customerRepository.findById(dto.getId());
+        if (optionalCustomer.isPresent()) {
+            Customer customer = optionalCustomer.get();
+            ModelMapper mapper = new ModelMapper();
+             mapper.map(dto, customer);
+            customer = customerRepository.save(customer);
+            return mapper.map(customer, CustomerDTO.class);
+        }
+        else
+            throw new RuntimeException("Customenr not found");
     }
 }
